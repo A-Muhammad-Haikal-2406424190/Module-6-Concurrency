@@ -14,6 +14,14 @@ Pada milestone ini saya memvalidasi request agar server tidak selalu mengembalik
 ![Commit 3 Screenshot](assets/commit3.png)
 ![Commit 3 Screenshot](assets/commit3-2.png)
 
+# Commit 4 Reflection Notes
+
+Pada milestone ini saya menambahkan simulasi respons lambat dengan menangani endpoint `GET /sleep HTTP/1.1` yang menjalankan `thread::sleep(Duration::from_secs(10))` sebelum mengirim response, dan dari percobaan membuka beberapa request bersamaan saya memahami bahwa server single-threaded hanya memproses satu koneksi pada satu waktu sehingga ketika satu request lambat berjalan, request lain ikut tertahan (blocking); hal ini menunjukkan keterbatasan arsitektur single thread untuk beban concurrent user dan menjadi alasan kuat kenapa refactor ke multithread/thread pool diperlukan agar request cepat tidak ikut menunggu request berat.
+
 # Commit 5 Reflection Notes
 
 Pada milestone ini saya memigrasikan server dari single-thread ke multithread dengan `ThreadPool` berisi beberapa `Worker` yang menunggu job dari channel (`mpsc`), sehingga setiap koneksi masuk tidak langsung diproses di thread utama tetapi dibungkus sebagai closure dan dikirim ke pool melalui `execute`, lalu diambil oleh worker yang tersedia; mekanisme ini penting karena request lambat seperti `/sleep` tidak lagi menahan seluruh server seperti sebelumnya, melainkan hanya menahan satu worker sementara worker lain tetap bisa melayani request cepat (`/`), sehingga throughput dan responsivitas meningkat, kode `main` juga menjadi lebih bersih karena tugasnya hanya menerima koneksi dan mendelegasikan pekerjaan ke pool, dan secara desain ini menjadi fondasi skalabilitas sebelum menambah fitur lanjutan seperti graceful shutdown atau konfigurasi ukuran pool yang lebih adaptif.
+
+# Commit Bonus Reflection Notes
+
+Pada bonus ini saya menambahkan `ThreadPool::build(size) -> Result<ThreadPool, &'static str>` sebagai pengganti pendekatan `new(size)` yang sebelumnya bisa gagal lewat panic, sehingga validasi ukuran pool (`size == 0`) kini ditangani secara eksplisit melalui `Result` dan bisa diproses lebih aman di sisi pemanggil (contohnya `ThreadPool::build(5).unwrap()` di `main`), sementara `new` tetap saya simpan sebagai pembanding dengan menjadikannya wrapper ke `build(...).expect(...)`; dari perbandingan ini saya memahami bahwa `new` lebih ringkas tetapi cenderung crash saat input tidak valid, sedangkan `build` lebih idiomatis untuk API yang mungkin gagal karena memaksa kita menangani error secara sadar, membuat desain library lebih robust dan lebih siap untuk skenario produksi.
