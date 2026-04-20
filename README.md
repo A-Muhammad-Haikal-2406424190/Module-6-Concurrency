@@ -1,3 +1,8 @@
 # Commit 1 Reflection Notes
 
 Pada milestone ini saya mempelajari bagaimana server Rust single-threaded menerima koneksi dari browser menggunakan `TcpListener` lalu memproses setiap koneksi melalui `handle_connection` dengan `TcpStream` dan `BufReader`, sehingga request HTTP dapat dibaca per baris menggunakan `.lines()`, dikumpulkan sampai baris kosong sebagai penanda akhir header, dan ditampilkan ke terminal untuk verifikasi; dari proses ini saya memahami bahwa meskipun server belum mengirim body response, server sudah dapat menangkap struktur request nyata dari browser (seperti method, path, host, dan header lain), serta menyadari bahwa log koneksi bisa muncul lebih dari sekali karena perilaku retry dari browser, sehingga langkah ini menjadi fondasi penting sebelum melanjutkan implementasi response HTTP yang lengkap.
+
+# Commit 2 Reflection Notes
+
+![Commit 2 Screenshot](assets/commit2.png)
+![Commit 2 screenshot](assets/commit2-2.png)
